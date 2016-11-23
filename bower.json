@@ -1,0 +1,28 @@
+{
+  "name": "purescript-aff-bus",
+  "description": "Many-to-many broadcasting",
+  "authors": [
+    "Nathan Faubion <nathan@n-son.com>"
+  ],
+  "keywords": [
+    "purescript",
+    "aff",
+    "bus"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^2.0.0",
+    "purescript-aff": "^2.0.0",
+    "purescript-lists": "^3.2.0",
+    "purescript-foldable-traversable": "^2.0.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^2.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "purescript-aff-bus",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf output .psa-stash",
+    "build": "pulp build -- --censor-lib --strict --stash",
+    "repl": "pulp psci",
+    "test": "pulp test"
+  },
+  "dependencies": {
+    "purescript": "^0.10.2",
+    "purescript-psa": "^0.4.0",
+    "rimraf": "^2.5.4",
+    "pulp": "^10.0.0"
+  }
+}
