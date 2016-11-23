@@ -1,6 +1,12 @@
 {
   "name": "purescript-aff-bus",
   "description": "Many-to-many broadcasting",
+  "homepage": "https://github.com/slamdata/purescript-aff-bus",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/slamdata/purescript-aff-bus.git"
+  },
   "authors": [
     "Nathan Faubion <nathan@n-son.com>"
   ],
