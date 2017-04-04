@@ -25,7 +25,6 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (EXCEPTION, error, message)
 import Control.Monad.Error.Class (throwError)
-import Control.Monad.Rec.Class (forever)
 import Data.Either (Either(..))
 
 type Effects eff =
@@ -53,8 +52,8 @@ test_readWrite = do
           modifyVar (_ + n) avar
           proc
 
-  forkAff proc
-  forkAff proc
+  void $ forkAff proc
+  void $ forkAff proc
 
   Bus.write 1 bus
   Bus.write 2 bus
@@ -64,7 +63,7 @@ test_readWrite = do
   assert <<< eq 212 =<< peekVar avar
   log "OK"
 
-main ∷ Eff (Effects (err ∷ EXCEPTION)) Unit
+main ∷ Eff (Effects (exception ∷ EXCEPTION)) Unit
 main = void $ launchAff do
   log "Testing read/write/kill..."
   test_readWrite

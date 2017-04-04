@@ -42,7 +42,7 @@ import Data.Tuple (Tuple(..))
 
 data Cap
 
-data Bus (r ∷ # *) a = Bus (AVar a) (AVar (List (AVar a)))
+data Bus (r ∷ # Type) a = Bus (AVar a) (AVar (List (AVar a)))
 
 type BusR = BusR' ()
 
@@ -59,7 +59,7 @@ make ∷ ∀ eff a. AffAVar eff (BusRW a)
 make = do
   cell ∷ AVar a ← makeVar
   consumers ∷ AVar (List (AVar a)) ← makeVar' mempty
-  forkAff $ forever do
+  _ ← forkAff $ forever do
     res ← takeVar cell
     vars ← takeVar consumers
     putVar consumers mempty
