@@ -27,8 +27,5 @@
     "purescript-aff": "^3.0.0",
     "purescript-lists": "^4.0.0",
     "purescript-foldable-traversable": "^3.0.0"
-  },
-  "devDependencies": {
-    "purescript-psci-support": "^3.0.0"
   }
 }
