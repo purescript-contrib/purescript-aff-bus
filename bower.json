@@ -23,12 +23,12 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-prelude": "^2.0.0",
-    "purescript-aff": "^2.0.0",
-    "purescript-lists": "^3.2.0",
-    "purescript-foldable-traversable": "^2.0.0"
+    "purescript-prelude": "^3.0.0",
+    "purescript-aff": "^3.0.0",
+    "purescript-lists": "^4.0.0",
+    "purescript-foldable-traversable": "^3.0.0"
   },
   "devDependencies": {
-    "purescript-psci-support": "^2.0.0"
+    "purescript-psci-support": "^3.0.0"
   }
 }
