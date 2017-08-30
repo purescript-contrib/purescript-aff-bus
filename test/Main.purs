@@ -45,17 +45,17 @@ test_readWrite = do
   ref ← liftEff $ newRef 0
 
   let
-    proc s = do
+    proc = do
       res ← attempt (Bus.read bus)
       case res of
         Left e  → do
           liftEff $ modifyRef ref (_ + 100)
         Right n → do
           liftEff $ modifyRef ref (_ + n)
-          proc s
+          proc
 
-  f1 ← forkAff $ proc "a"
-  f2 ← forkAff $ proc "b"
+  f1 ← forkAff proc
+  f2 ← forkAff proc
 
   Bus.write 1 bus
   Bus.write 2 bus
