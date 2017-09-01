@@ -58,7 +58,7 @@ read (Bus avar) = readVar avar
 
 -- | Pushes a new value to the Bus, yieldig immediately.
 write ∷ ∀ eff a r. a → BusW' r a → Aff (avar ∷ AVAR | eff) Unit
-write a (Bus avar) = tryPutVar avar a *> void (takeVar avar)
+write a (Bus avar) = tryPutVar a avar *> void (takeVar avar)
 
 -- | Splits a bidirectional Bus into separate read and write Buses.
 split ∷ ∀ a. BusRW a → Tuple (BusR a) (BusW a)
@@ -66,4 +66,4 @@ split (Bus avar) = Tuple (Bus avar) (Bus avar)
 
 -- | Kills the Bus and propagates the exception to all consumers.
 kill ∷ ∀ eff a r. Error → BusW' r a → Aff (avar ∷ AVAR | eff) Unit
-kill err (Bus avar) = killVar avar err
+kill err (Bus avar) = killVar err avar
