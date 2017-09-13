@@ -24,7 +24,7 @@
   ],
   "dependencies": {
     "purescript-prelude": "^3.0.0",
-    "purescript-aff": "^4.0.0-rc.5"
+    "purescript-aff": "^4.0.0"
   },
   "devDependencies": {
     "purescript-refs": "^3.0.0"
