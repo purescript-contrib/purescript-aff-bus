@@ -17,19 +17,22 @@ limitations under the License.
 module Test.Main where
 
 import Prelude
-import Control.Monad.Aff (Aff, forkAff, launchAff, attempt)
-import Control.Monad.Aff.AVar (AVAR, makeVar', modifyVar, peekVar)
+import Control.Monad.Aff (Aff, forkAff, launchAff, joinFiber, attempt)
+import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Aff.Bus as Bus
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION, error, message)
+import Control.Monad.Eff.Exception (EXCEPTION, error)
+import Control.Monad.Eff.Ref (REF, newRef, readRef, modifyRef)
 import Control.Monad.Error.Class (throwError)
 import Data.Either (Either(..))
 
 type Effects eff =
   ( console ∷ CONSOLE
   , avar ∷ AVAR
+  , ref ∷ REF
   | eff
   )
 
@@ -39,28 +42,31 @@ assert a = unless a (throwError (error "Assertion failed"))
 test_readWrite ∷ ∀ eff. Aff (Effects eff) Unit
 test_readWrite = do
   bus ← Bus.make
-  avar ← makeVar' 0
+  ref ← liftEff $ newRef 0
 
   let
     proc = do
       res ← attempt (Bus.read bus)
       case res of
         Left e  → do
-          modifyVar (_ + 100) avar
-          log (message e)
+          liftEff $ modifyRef ref (_ + 100)
         Right n → do
-          modifyVar (_ + n) avar
+          liftEff $ modifyRef ref (_ + n)
           proc
 
-  void $ forkAff proc
-  void $ forkAff proc
+  f1 ← forkAff proc
+  f2 ← forkAff proc
 
   Bus.write 1 bus
   Bus.write 2 bus
   Bus.write 3 bus
   Bus.kill (error "Done") bus
 
-  assert <<< eq 212 =<< peekVar avar
+  joinFiber f1
+  joinFiber f2
+
+  res <- liftEff $ readRef ref
+  assert (res == 212)
   log "OK"
 
 main ∷ Eff (Effects (exception ∷ EXCEPTION)) Unit
