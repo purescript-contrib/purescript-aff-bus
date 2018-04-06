@@ -69,7 +69,6 @@ make = liftEff do
       loop
   pure $ Bus cell consumers
 
-
 -- | Blocks until a new value is pushed to the Bus, returning the value.
 read ∷ ∀ eff a r. BusR' r a → Aff (avar ∷ AVAR | eff) a
 read (Bus _ consumers) = do

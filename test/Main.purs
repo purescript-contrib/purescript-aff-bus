@@ -91,5 +91,3 @@ main = do
             log "ok"
             writeRef isFinishedRef true
           else throwException $ error "failed"
-
-
