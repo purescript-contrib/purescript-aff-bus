@@ -57,10 +57,6 @@ test_readWrite bus = do
   Bus.write 2 bus
   Bus.write 3 bus
 
-  -- without delay kill of bus interpats pending interactions with avar
-  -- so we need to wait for some time to be sure that all actions are finished
-  delay $ Milliseconds 10.0
-  Bus.kill (error "Done") bus
 
   joinFiber f1
   joinFiber f2
