@@ -31,6 +31,7 @@ module Control.Monad.Aff.Bus
 
 import Prelude
 
+import Control.Lazy (fix)
 import Control.Monad.Aff (Aff, attempt, runAff_)
 import Control.Monad.Aff.AVar (AVAR, AVar, killVar, makeEmptyVar, putVar, takeVar)
 import Control.Monad.Eff.AVar as EffAvar
@@ -60,14 +61,12 @@ make ∷ ∀ m eff a. MonadEff (avar ∷ AVAR | eff) m => m (BusRW a)
 make = liftEff do
   cell ← EffAvar.makeEmptyVar
   consumers ← EffAvar.makeVar mempty
-  let
-    loop =
-      attempt (takeVar cell) >>= traverse_ \res → do
-        vars ← takeVar consumers
-        putVar mempty consumers
-        sequence_ (foldl (\xs a → putVar res a : xs) mempty vars)
-        loop
-  runAff_ (const $ pure unit) $ loop
+  runAff_ (const $ pure unit) $ fix \loop →
+    attempt (takeVar cell) >>= traverse_ \res → do
+      vars ← takeVar consumers
+      putVar mempty consumers
+      sequence_ (foldl (\xs a → putVar res a : xs) mempty vars)
+      loop
   pure $ Bus cell consumers
 
 
