@@ -73,6 +73,7 @@ main ∷ Eff (Effects (exception ∷ EXCEPTION)) Unit
 main = do
   log "Testing read/write/kill..."
   runTest $ Bus.make >>= test_readWrite
+  runTest $ (liftEff Bus.make) >>= test_readWrite
   where
   runTest t = do
     isFinishedRef <- newRef false
