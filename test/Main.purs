@@ -18,17 +18,16 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Aff (Aff, attempt, forkAff, joinFiber, launchAff)
+import Control.Monad.Aff (Aff, Milliseconds(..), attempt, delay, forkAff, joinFiber, runAff_)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Aff.Bus as Bus
-import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION, error)
-import Control.Monad.Eff.Ref (REF, newRef, readRef, modifyRef)
+import Control.Monad.Eff.Console (log, CONSOLE)
+import Control.Monad.Eff.Exception (EXCEPTION, error, throwException)
+import Control.Monad.Eff.Ref (REF, modifyRef, newRef, readRef, writeRef)
 import Control.Monad.Error.Class (throwError)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 
 type Effects eff =
   ( console ∷ CONSOLE
@@ -37,12 +36,8 @@ type Effects eff =
   | eff
   )
 
-assert ∷ ∀ eff. Boolean → Aff eff Unit
-assert a = unless a (throwError (error "Assertion failed"))
-
-test_readWrite ∷ ∀ eff. Aff (Effects eff) Unit
-test_readWrite = do
-  bus ← Bus.make
+test_readWrite ∷ ∀ eff. Bus.BusRW Int -> Aff (Effects eff) Boolean
+test_readWrite bus = do
   ref ← liftEff $ newRef 0
 
   let
@@ -67,10 +62,29 @@ test_readWrite = do
   joinFiber f2
 
   res <- liftEff $ readRef ref
-  assert (res == 212)
-  log "OK"
+  pure $ res == 212
+
 
 main ∷ Eff (Effects (exception ∷ EXCEPTION)) Unit
-main = void $ launchAff do
+main = do
   log "Testing read/write/kill..."
-  test_readWrite
+  runTest $ Bus.make >>= test_readWrite
+  where
+  runTest t = do
+    isFinishedRef <- newRef false
+    runAff_ (isOk isFinishedRef) t
+    runAff_ (either throwException pure) do
+      delay (Milliseconds 100.0)
+      isFinished <- liftEff $ readRef isFinishedRef
+      unless isFinished $ throwError (error "Timeout")
+    where
+    isOk isFinishedRef = case _ of
+      Left err -> throwException err
+      Right res ->
+        if res
+          then do
+            log "ok"
+            writeRef isFinishedRef true
+          else throwException $ error "failed"
+
+
