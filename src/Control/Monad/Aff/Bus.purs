@@ -61,12 +61,14 @@ make ∷ ∀ m eff a. MonadEff (avar ∷ AVAR | eff) m => m (BusRW a)
 make = liftEff do
   cell ← EffAvar.makeEmptyVar
   consumers ← EffAvar.makeVar mempty
-  runAff_ (const $ pure unit) $ fix \loop →
-    attempt (takeVar cell) >>= traverse_ \res → do
+  let
+    loop = attempt (takeVar cell) >>= traverse_ \res → do
       vars ← takeVar consumers
       putVar mempty consumers
       sequence_ (foldl (\xs a → putVar res a : xs) mempty vars)
       loop
+  runAff_ (const $ pure unit) loop
+
   pure $ Bus cell consumers
 
 -- | Blocks until a new value is pushed to the Bus, returning the value.
