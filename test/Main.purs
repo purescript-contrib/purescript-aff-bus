@@ -60,7 +60,13 @@ test_readWrite bus = do
   -- without delay kill of bus interpats pending interactions with avar
   -- so we need to wait for some time to be sure that all actions are finished
   delay $ Milliseconds 10.0
-  Bus.kill (error "Done") bus
+  let err = error "Done"
+  Bus.kill err bus
+  attempt (Bus.read bus) >>= case _ of
+    Left err' | show err' == show err -> pure unit
+    oop -> throwError $ error "read from killed bus should resolve with same error which was used to kill"
+  unlessM (Bus.isKilled bus) $ throwError $ error "isKilled must return true as bus was killed"
+  
 
   joinFiber f1
   joinFiber f2

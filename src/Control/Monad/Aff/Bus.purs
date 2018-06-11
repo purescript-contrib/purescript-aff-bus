@@ -20,6 +20,7 @@ module Control.Monad.Aff.Bus
   , write
   , split
   , kill
+  , isKilled
   , Cap
   , Bus
   , BusRW
@@ -33,6 +34,7 @@ import Prelude
 
 import Control.Monad.Aff (Aff, attempt, launchAff_)
 import Control.Monad.Aff.AVar (AVAR, AVar, killVar, makeEmptyVar, putVar, takeVar)
+import Control.Monad.Eff.AVar (isKilledVar)
 import Control.Monad.Eff.AVar as EffAvar
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception as Exn
@@ -56,7 +58,7 @@ type BusW' r = Bus (write ∷ Cap | r)
 type BusRW = Bus (read ∷ Cap, write ∷ Cap)
 
 -- | Creates a new bidirectional Bus which can be read from and written to.
-make ∷ ∀ m eff a. MonadEff (avar ∷ AVAR | eff) m => m (BusRW a)
+make ∷ ∀ m eff a. MonadEff (avar ∷ AVAR | eff) m ⇒ m (BusRW a)
 make = liftEff do
   cell ← EffAvar.makeEmptyVar
   consumers ← EffAvar.makeVar mempty
@@ -86,9 +88,14 @@ write a (Bus cell _) = putVar a cell
 split ∷ ∀ a. BusRW a → Tuple (BusR a) (BusW a)
 split (Bus a b) = Tuple (Bus a b) (Bus a b)
 
--- | Kills the Bus and propagates the exception to all consumers.
+-- | Kills the Bus and propagates the exception to all pending and future consumers.
 kill ∷ ∀ eff a r. Exn.Error → BusW' r a → Aff (avar ∷ AVAR | eff) Unit
-kill err (Bus cell consumers) = do
+kill err (Bus cell consumers) = unlessM (liftEff $ isKilledVar cell) do
   killVar err cell
   vars ← takeVar consumers
   traverse_ (killVar err) vars
+  killVar err consumers
+
+-- | Synchronously checks whether a Bus has been killed.
+isKilled ∷ ∀ m eff a r. MonadEff (avar ∷ AVAR | eff) m ⇒ BusR' r a → m Boolean
+isKilled (Bus cell _) = liftEff $ isKilledVar cell
