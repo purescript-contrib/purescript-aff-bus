@@ -36,8 +36,9 @@ import Control.Monad.Aff.AVar (AVAR, AVar, killVar, makeEmptyVar, putVar, takeVa
 import Control.Monad.Eff.AVar as EffAvar
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception as Exn
+import Control.Monad.Rec.Class (forever)
 import Data.Foldable (foldl, sequence_, traverse_)
-import Data.List (List, (:))
+import Data.List (List(..), (:))
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(..))
 
@@ -60,14 +61,11 @@ make ∷ ∀ m eff a. MonadEff (avar ∷ AVAR | eff) m => m (BusRW a)
 make = liftEff do
   cell ← EffAvar.makeEmptyVar
   consumers ← EffAvar.makeVar mempty
-  let
-    loop = attempt (takeVar cell) >>= traverse_ \res → do
-      vars ← takeVar consumers
-      putVar mempty consumers
-      sequence_ (foldl (\xs a → putVar res a : xs) mempty vars)
-      loop
-  launchAff_ loop
-
+  launchAff_ $ attempt $ forever do
+    res ← takeVar cell
+    vars ← takeVar consumers
+    putVar Nil consumers
+    sequence_ (foldl (\xs a → putVar res a : xs) mempty vars)
   pure $ Bus cell consumers
 
 -- | Blocks until a new value is pushed to the Bus, returning the value.
