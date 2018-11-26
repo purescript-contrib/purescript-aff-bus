@@ -18,36 +18,28 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Aff (Aff, Milliseconds(..), attempt, delay, forkAff, joinFiber, runAff_)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Bus as Bus
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (log, CONSOLE)
-import Control.Monad.Eff.Exception (EXCEPTION, error, throwException)
-import Control.Monad.Eff.Ref (REF, modifyRef, newRef, readRef, writeRef)
+import Effect.Aff (Aff, Milliseconds(..), attempt, delay, forkAff, joinFiber, runAff_)
+import Effect.Aff.Bus as Bus
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Console (log)
+import Effect.Exception (error, throwException)
+import Effect.Ref as Ref
 import Control.Monad.Error.Class (throwError)
 import Data.Either (Either(..), either)
 
-type Effects eff =
-  ( console ∷ CONSOLE
-  , avar ∷ AVAR
-  , ref ∷ REF
-  | eff
-  )
-
-test_readWrite ∷ ∀ eff. Bus.BusRW Int -> Aff (Effects eff) Boolean
+test_readWrite ∷ Bus.BusRW Int -> Aff Boolean
 test_readWrite bus = do
-  ref ← liftEff $ newRef 0
+  ref ← liftEffect $ Ref.new 0
 
   let
     proc = do
       res ← attempt (Bus.read bus)
       case res of
         Left e  → do
-          liftEff $ modifyRef ref (_ + 100)
+          void $ liftEffect $ Ref.modify (_ + 100) ref
         Right n → do
-          liftEff $ modifyRef ref (_ + n)
+          void $ liftEffect $ Ref.modify (_ + n) ref
           proc
 
   f1 ← forkAff proc
@@ -71,22 +63,22 @@ test_readWrite bus = do
   joinFiber f1
   joinFiber f2
 
-  res <- liftEff $ readRef ref
+  res <- liftEffect $ Ref.read ref
   pure $ res == 212
 
 
-main ∷ Eff (Effects (exception ∷ EXCEPTION)) Unit
+main ∷ Effect Unit
 main = do
   log "Testing read/write/kill..."
   runTest $ Bus.make >>= test_readWrite
-  runTest $ (liftEff Bus.make) >>= test_readWrite
+  runTest $ (liftEffect Bus.make) >>= test_readWrite
   where
   runTest t = do
-    isFinishedRef <- newRef false
+    isFinishedRef <- Ref.new false
     runAff_ (isOk isFinishedRef) t
     runAff_ (either throwException pure) do
       delay (Milliseconds 100.0)
-      isFinished <- liftEff $ readRef isFinishedRef
+      isFinished <- liftEffect $ Ref.read isFinishedRef
       unless isFinished $ throwError (error "Timeout")
     where
     isOk isFinishedRef = case _ of
@@ -95,5 +87,5 @@ main = do
         if res
           then do
             log "ok"
-            writeRef isFinishedRef true
+            Ref.write true isFinishedRef
           else throwException $ error "failed"
