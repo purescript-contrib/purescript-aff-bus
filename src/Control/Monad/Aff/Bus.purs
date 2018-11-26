@@ -33,8 +33,7 @@ module Control.Monad.Aff.Bus
 import Prelude
 
 import Control.Monad.Aff (Aff, attempt, launchAff_)
-import Control.Monad.Aff.AVar (AVAR, AVar, killVar, makeEmptyVar, putVar, takeVar)
-import Control.Monad.Eff.AVar (isKilledVar)
+import Control.Monad.Aff.AVar (AVAR, AVar, isKilledVarm, killVar, makeEmptyVar, putVar, takeVar)
 import Control.Monad.Eff.AVar as EffAvar
 import Control.Monad.Eff.Class (class MonadEff, liftEff)
 import Control.Monad.Eff.Exception as Exn
