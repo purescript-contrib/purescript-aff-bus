@@ -45,7 +45,7 @@ import Data.Tuple (Tuple(..))
 
 data Cap
 
-data Bus (r ∷ # Type) a = Bus (AVar a) (AVar (List (AVar a)))
+data Bus (r ∷ Row Type) a = Bus (AVar a) (AVar (List (AVar a)))
 
 type BusR = BusR' ()
 
