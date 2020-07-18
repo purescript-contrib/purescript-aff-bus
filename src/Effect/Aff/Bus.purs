@@ -31,6 +31,8 @@ data Cap
 
 data Bus (r ∷ # Type) a = Bus (AVar a) (AVar (List (AVar a)))
 
+type role Bus nominal representational
+
 type BusR = BusR' ()
 
 type BusR' r = Bus (read ∷ Cap | r)
