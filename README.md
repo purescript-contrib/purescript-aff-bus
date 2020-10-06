@@ -6,7 +6,7 @@
 [![Maintainer: garyb](https://img.shields.io/badge/maintainer-garyb-teal.svg)](https://github.com/garyb)
 [![Maintainer: thomashoneyman](https://img.shields.io/badge/maintainer-thomashoneyman-teal.svg)](https://github.com/thomashoneyman)
 
-The library summary hasn't been written yet (contributions are welcome!). The library summary describes the library's purpose in one to three sentences.
+Many-to-many broadcasting.
 
 ## Installation
 
@@ -25,8 +25,7 @@ The quick start hasn't been written yet (contributions are welcome!). The quick 
 `aff-bus` documentation is stored in a few places:
 
 1. Module documentation is [published on Pursuit](https://pursuit.purescript.org/packages/purescript-aff-bus).
-2. Written documentation is kept in the [docs directory](./docs).
-3. Usage examples can be found in [the test suite](./test).
+2. Usage examples can be found in [the test suite](./test).
 
 If you get stuck, there are several ways to get help:
 
