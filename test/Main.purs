@@ -18,29 +18,28 @@ module Test.Main where
 
 import Prelude
 
+import Control.Monad.Error.Class (throwError)
+import Control.Parallel (parSequence_)
+import Data.Bifunctor (lmap)
+import Data.Either (Either(..), either)
+import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), attempt, delay, forkAff, joinFiber, runAff_)
 import Effect.Aff.Bus as Bus
-import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Exception (error, throwException)
 import Effect.Ref as Ref
-import Control.Monad.Error.Class (throwError)
-import Data.Either (Either(..), either)
+import Test.Assert (assertEqual', assertTrue')
 
-test_readWrite ∷ Bus.BusRW Int -> Aff Boolean
+test_readWrite ∷ Bus.BusRW Int -> Aff Unit
 test_readWrite bus = do
-  ref ← liftEffect $ Ref.new 0
+  ref ← liftEffect $ Ref.new []
 
   let
     proc = do
       res ← attempt (Bus.read bus)
-      case res of
-        Left e  → do
-          void $ liftEffect $ Ref.modify (_ + 100) ref
-        Right n → do
-          void $ liftEffect $ Ref.modify (_ + n) ref
-          proc
+      void $ liftEffect $ Ref.modify (_ <> [res]) ref
+      either (const $ pure unit) (const proc) res
 
   f1 ← forkAff proc
   f2 ← forkAff proc
@@ -49,22 +48,29 @@ test_readWrite bus = do
   Bus.write 2 bus
   Bus.write 3 bus
 
-  -- without delay kill of bus interpats pending interactions with avar
-  -- so we need to wait for some time to be sure that all actions are finished
-  delay $ Milliseconds 10.0
   let err = error "Done"
-  Bus.kill err bus
-  attempt (Bus.read bus) >>= case _ of
-    Left err' | show err' == show err -> pure unit
-    oop -> throwError $ error "read from killed bus should resolve with same error which was used to kill"
-  unlessM (Bus.isKilled bus) $ throwError $ error "isKilled must return true as bus was killed"
+  -- killing in parallel must be safe
+  parSequence_
+    [ Bus.kill err bus
+    , Bus.kill err bus
+    , Bus.kill err bus
+    ]
+  isKilled <- Bus.isKilled bus
+  liftEffect $ assertTrue' "`isKilled` immediately after `kill` results `true`" isKilled
   
+  -- kill is idempotent
+  Bus.kill err bus
+
+  readRes <- attempt (Bus.read bus)
+  liftEffect $ assertEqual' "`read` from killed bus should resolve with same error which was used to `kill`"
+    {actual: lmap show readRes, expected: Left $ show err}
 
   joinFiber f1
   joinFiber f2
 
   res <- liftEffect $ Ref.read ref
-  pure $ res == 212
+  liftEffect $ assertEqual' "`res` should be as expected"
+    {actual: lmap show <$> res, expected: [Right 1, Right 1, Right 2, Right 2, Right 3, Right 3, Left $ show err, Left $ show err]}
 
 
 main ∷ Effect Unit
@@ -83,9 +89,6 @@ main = do
     where
     isOk isFinishedRef = case _ of
       Left err -> throwException err
-      Right res ->
-        if res
-          then do
-            log "ok"
-            Ref.write true isFinishedRef
-          else throwException $ error "failed"
+      Right res -> do
+        log "ok"
+        Ref.write true isFinishedRef

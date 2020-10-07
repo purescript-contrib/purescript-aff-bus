@@ -16,20 +16,22 @@ module Effect.Aff.Bus
 
 import Prelude
 
-import Effect.Aff (Aff, attempt, launchAff_)
-import Effect.Aff.AVar (AVar)
-import Effect.Aff.AVar as AVar
-import Effect.AVar as EffAvar
-import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Exception as Exn
+import Control.Lazy (fix)
 import Control.Monad.Rec.Class (forever)
+import Data.Either (Either(..))
 import Data.Foldable (foldl, sequence_, traverse_)
 import Data.List (List(..), (:))
 import Data.Tuple (Tuple(..))
+import Effect.AVar as EffAVar
+import Effect.Aff (Aff, Error, launchAff_, try)
+import Effect.Aff.AVar (AVar)
+import Effect.Aff.AVar as AVar
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Exception as Exn
 
 data Cap
 
-data Bus (r ∷ # Type) a = Bus (AVar a) (AVar (List (AVar a)))
+data Bus (r ∷ # Type) a = Bus (AVar (Either Error a)) (AVar (List (AVar a)))
 
 type BusR = BusR' ()
 
@@ -44,13 +46,26 @@ type BusRW = Bus (read ∷ Cap, write ∷ Cap)
 -- | Creates a new bidirectional Bus which can be read from and written to.
 make ∷ ∀ m a. MonadEffect m ⇒ m (BusRW a)
 make = liftEffect do
-  cell ← EffAvar.empty
-  consumers ← EffAvar.new mempty
-  launchAff_ $ attempt $ forever do
-    res ← AVar.take cell
-    vars ← AVar.take consumers
-    AVar.put Nil consumers
-    sequence_ (foldl (\xs a → AVar.put res a : xs) mempty vars)
+  cell ← EffAVar.empty
+  consumers ← EffAVar.new mempty
+  launchAff_ $ fix \loop -> do
+    -- we `read` from `cell` instead of `take`, so that if error is written,
+    -- `cell` can be killed, such that if there was any other `put` operations
+    -- blocked, that will resolve with the error.
+    resE ← AVar.read cell
+    case resE of
+      Left err -> do
+        vars ← AVar.take consumers
+        liftEffect do
+          traverse_ (EffAVar.kill err) vars
+          EffAVar.kill err consumers
+          EffAVar.kill err cell
+      Right res -> do
+        void $ AVar.take cell
+        vars ← AVar.take consumers
+        AVar.put Nil consumers
+        sequence_ (foldl (\xs a → AVar.put res a : xs) mempty vars)
+        loop
   pure $ Bus cell consumers
 
 -- | Blocks until a new value is pushed to the Bus, returning the value.
@@ -63,20 +78,26 @@ read (Bus _ consumers) = do
 
 -- | Pushes a new value to the Bus, yieldig immediately.
 write ∷ ∀ a r. a → BusW' r a → Aff Unit
-write a (Bus cell _) = AVar.put a cell
+write a (Bus cell _) = AVar.put (Right a) cell
 
 -- | Splits a bidirectional Bus into separate read and write Buses.
 split ∷ ∀ a. BusRW a → Tuple (BusR a) (BusW a)
 split (Bus a b) = Tuple (Bus a b) (Bus a b)
 
 -- | Kills the Bus and propagates the exception to all pending and future consumers.
+-- | `kill` is idempotent and blocks until killing process is fully finishes, i.e.
+-- | `kill err bus *> isKilled bus` will result with `true`.
 kill ∷ ∀ a r. Exn.Error → BusW' r a → Aff Unit
-kill err (Bus cell consumers) = unlessM (liftEffect $ EffAvar.isKilled <$> EffAvar.status cell) do
-  AVar.kill err cell
-  vars ← AVar.take consumers
-  traverse_ (AVar.kill err) vars
-  AVar.kill err consumers
+kill err bus@(Bus cell consumers) = do
+  unlessM (isKilled bus) do
+    -- If there are multiple parallel processes executing `kill` at the same time,
+    -- then without this try all of processes which are blocked bu put will be killed
+    -- as part of handling first `put`. so we have this try to guaranty that kill is idempotent.
+    void $ try $ AVar.put (Left err) cell
+    -- Here we block until read from `cell` result's with the `error`,
+    -- i.e. kill process was finished successfully.
+    void $ try $ forever $ AVar.read cell
 
 -- | Synchronously checks whether a Bus has been killed.
-isKilled ∷ ∀ m a r. MonadEffect m ⇒ BusR' r a → m Boolean
-isKilled (Bus cell _) = liftEffect $ EffAvar.isKilled <$> EffAvar.status cell
+isKilled ∷ ∀ m a r. MonadEffect m ⇒ Bus r a → m Boolean
+isKilled (Bus cell _) = liftEffect $ EffAVar.isKilled <$> EffAVar.status cell
