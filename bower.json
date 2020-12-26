@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/slamdata/purescript-aff-bus.git"
+    "url": "https://github.com/slamdata/purescript-aff-bus.git"
   },
   "authors": [
     "Nathan Faubion <nathan@n-son.com>"
@@ -23,11 +23,11 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-prelude": "^4.0.0",
-    "purescript-avar": "^3.0.0"
+    "purescript-prelude": "master",
+    "purescript-avar": "main"
   },
   "devDependencies": {
-    "purescript-console": "^4.0.0",
-    "purescript-refs": "^4.0.0"
+    "purescript-console": "master",
+    "purescript-refs": "master"
   }
 }
