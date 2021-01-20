@@ -5,20 +5,22 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes (😱!!!):
+- Added support for PureScript 0.14 and dropped support for all previous versions (#24)
 
 New features:
+- Added roles declarations to forbid unsafe coercions (#20) 
 
 Bugfixes:
 
 Other improvements:
+- Update directory structure to match module name for `Effect.Aff.Bus` (#16)
+- Updated to comply with Contributors library guidelines by adding new issue and pull request templates, updating documentation, and migrating to Spago for local development and CI (#21)
 
 ## [v4.0.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v4.0.0) - 2018-11-26
 
-- Updated for PureScript 0.12.x
-- Fixed leak in make loop
-- Fixed `read` to not block forever when a bus is killed
-
-(@safareli)
+- Updated for PureScript 0.12.x (@safareli)
+- Fixed leak in make loop (@safareli)
+- Fixed `read` to not block forever when a bus is killed (@safareli)
 
 ## [v3.1.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v3.1.0) - 2018-04-12
 
@@ -30,7 +32,7 @@ Other improvements:
 
 ## [v2.0.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v2.0.0) - 2017-04-04
 
-- Updates for PureScript 0.11
+- Updated for PureScript 0.11
 
 ## [v1.0.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v1.0.0) - 2016-11-23
 
