@@ -13,7 +13,8 @@ New features:
 Bugfixes:
 
 Other improvements:
-- Update directory structure to match module name for `Effect.Aff.Bus` (#16)
+- Updated directory structure to match module name for `Effect.Aff.Bus` (#16)
+- Changed default branch to `main` from `master`
 - Updated to comply with Contributors library guidelines by adding new issue and pull request templates, updating documentation, and migrating to Spago for local development and CI (#21)
 
 ## [v4.0.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v4.0.0) - 2018-11-26
