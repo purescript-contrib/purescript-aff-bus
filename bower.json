@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/slamdata/purescript-aff-bus.git"
+    "url": "https://github.com/purescript-contrib/purescript-aff-bus.git"
   },
   "authors": [
     "Nathan Faubion <nathan@n-son.com>"
