@@ -1,6 +1,20 @@
 { name = "aff-bus"
 , dependencies =
-  [ "avar", "console", "effect", "prelude", "psci-support", "refs" ]
+  [ "aff"
+  , "avar"
+  , "console"
+  , "effect"
+  , "either"
+  , "exceptions"
+  , "foldable-traversable"
+  , "lists"
+  , "prelude"
+  , "psci-support"
+  , "refs"
+  , "tailrec"
+  , "transformers"
+  , "tuples"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
