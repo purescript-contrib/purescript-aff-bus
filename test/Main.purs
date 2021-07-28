@@ -36,7 +36,7 @@ test_readWrite bus = do
     proc = do
       res ← attempt (Bus.read bus)
       case res of
-        Left e  → do
+        Left _  → do
           void $ liftEffect $ Ref.modify (_ + 100) ref
         Right n → do
           void $ liftEffect $ Ref.modify (_ + n) ref
@@ -56,7 +56,7 @@ test_readWrite bus = do
   Bus.kill err bus
   attempt (Bus.read bus) >>= case _ of
     Left err' | show err' == show err -> pure unit
-    oop -> throwError $ error "read from killed bus should resolve with same error which was used to kill"
+    _ -> throwError $ error "read from killed bus should resolve with same error which was used to kill"
   unlessM (Bus.isKilled bus) $ throwError $ error "isKilled must return true as bus was killed"
   
 
