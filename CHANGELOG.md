@@ -12,6 +12,11 @@ Bugfixes:
 
 Other improvements:
 
+## [v5.0.1](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v5.0.1) - 2021-11-09
+
+Other improvements:
+- Fixed typos in the LICENSE file that made it impossible for `licensee` to detect the license (#29 by @maxdeviant)
+
 ## [v5.0.0](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v5.0.0) - 2021-02-26
 
 Breaking changes:
