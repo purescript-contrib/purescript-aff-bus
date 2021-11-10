@@ -28,22 +28,22 @@ import Effect.Ref as Ref
 import Control.Monad.Error.Class (throwError)
 import Data.Either (Either(..), either)
 
-test_readWrite ∷ Bus.BusRW Int -> Aff Boolean
+test_readWrite :: Bus.BusRW Int -> Aff Boolean
 test_readWrite bus = do
-  ref ← liftEffect $ Ref.new 0
+  ref <- liftEffect $ Ref.new 0
 
   let
     proc = do
-      res ← attempt (Bus.read bus)
+      res <- attempt (Bus.read bus)
       case res of
-        Left _  → do
+        Left _ -> do
           void $ liftEffect $ Ref.modify (_ + 100) ref
-        Right n → do
+        Right n -> do
           void $ liftEffect $ Ref.modify (_ + n) ref
           proc
 
-  f1 ← forkAff proc
-  f2 ← forkAff proc
+  f1 <- forkAff proc
+  f2 <- forkAff proc
 
   Bus.write 1 bus
   Bus.write 2 bus
@@ -58,7 +58,6 @@ test_readWrite bus = do
     Left err' | show err' == show err -> pure unit
     _ -> throwError $ error "read from killed bus should resolve with same error which was used to kill"
   unlessM (Bus.isKilled bus) $ throwError $ error "isKilled must return true as bus was killed"
-  
 
   joinFiber f1
   joinFiber f2
@@ -66,8 +65,7 @@ test_readWrite bus = do
   res <- liftEffect $ Ref.read ref
   pure $ res == 212
 
-
-main ∷ Effect Unit
+main :: Effect Unit
 main = do
   log "Testing read/write/kill..."
   runTest $ Bus.make >>= test_readWrite
@@ -84,8 +82,7 @@ main = do
     isOk isFinishedRef = case _ of
       Left err -> throwException err
       Right res ->
-        if res
-          then do
-            log "ok"
-            Ref.write true isFinishedRef
-          else throwException $ error "failed"
+        if res then do
+          log "ok"
+          Ref.write true isFinishedRef
+        else throwException $ error "failed"
