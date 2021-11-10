@@ -11,7 +11,7 @@ New features:
 Bugfixes:
 
 Other improvements:
-- Added `purs-tidy` formatter (#24 by @thomashoneyman)
+- Added `purs-tidy` formatter (#30 by @thomashoneyman)
 
 ## [v5.0.1](https://github.com/purescript-contrib/purescript-aff-bus/releases/tag/v5.0.1) - 2021-11-09
 
