@@ -4,7 +4,6 @@
 [![Release](https://img.shields.io/github/release/purescript-contrib/purescript-aff-bus.svg)](https://github.com/purescript-contrib/purescript-aff-bus/releases)
 [![Pursuit](https://pursuit.purescript.org/packages/purescript-aff-bus/badge)](https://pursuit.purescript.org/packages/purescript-aff-bus)
 [![Maintainer: garyb](https://img.shields.io/badge/maintainer-garyb-teal.svg)](https://github.com/garyb)
-[![Maintainer: thomashoneyman](https://img.shields.io/badge/maintainer-thomashoneyman-teal.svg)](https://github.com/thomashoneyman)
 
 Many-to-many broadcasting.
 
