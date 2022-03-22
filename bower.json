@@ -23,12 +23,12 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-avar": "^4.0.0",
-    "purescript-effect": "^3.0.0",
-    "purescript-prelude": "^5.0.0"
+    "purescript-avar": "main",
+    "purescript-effect": "master",
+    "purescript-prelude": "master"
   },
   "devDependencies": {
-    "purescript-console": "^5.0.0",
-    "purescript-refs": "^5.0.0"
+    "purescript-console": "master",
+    "purescript-refs": "master"
   }
 }
