@@ -48,7 +48,7 @@ make :: forall m a. MonadEffect m => m (BusRW a)
 make = liftEffect do
   cell <- EffAvar.empty
   consumers <- EffAvar.new mempty
-  launchAff_ $ attempt $ forever do
+  launchAff_ $ void $ attempt $ forever do
     res <- AVar.take cell
     vars <- AVar.take consumers
     AVar.put Nil consumers
